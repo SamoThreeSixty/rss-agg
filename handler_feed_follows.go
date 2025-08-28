@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"encoding/json"
 	"time"
+	"database/sql"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/samothreesixty/rss-agg/internal/db"
 )
@@ -49,4 +51,31 @@ func (apiConfig *apiConfig) handlerGetFeedFollowsByUser(w http.ResponseWriter, r
 	}
 
 	respondWithJson(w, 200, feedFollowModels)
+}
+
+func (apiConfig *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user db.User) {
+	feedFollowIDStr := chi.URLParam(r, "feedFollowId")
+	feedFollowID, err := uuid.Parse(feedFollowIDStr)
+	if err != nil {
+		respondWithError(w, 400, "Invalid feed follow ID")
+		return
+	}
+
+	deletedID, err := apiConfig.DB.DeleteFeedFollow(r.Context(), db.DeleteFeedFollowParams{
+		ID:     feedFollowID,
+		UserID: user.ID,
+	})
+	if err == sql.ErrNoRows {
+		respondWithError(w, 404, "Feed follow not found")
+		return
+	}
+	if err != nil {
+		respondWithError(w, 500, "Cannot delete feed follow")
+		return
+	}
+
+	respondWithJson(w, 200, map[string]string{
+		"result": "success",
+		"id":    deletedID.String(),
+	})
 }
