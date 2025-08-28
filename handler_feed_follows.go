@@ -35,3 +35,18 @@ func (apiConfig *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *ht
 
 	respondWithJson(w, 201, databaseFeedFollowToFeedFollow(feedFollow))
 }
+
+func (apiConfig *apiConfig) handlerGetFeedFollowsByUser(w http.ResponseWriter, r *http.Request, user db.User) {
+	feedFollows, err := apiConfig.DB.GetFeedFollowsByUserID(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, 500, "Cannot get feed follows")
+		return
+	}
+
+	feedFollowModels := make([]FeedFollow, len(feedFollows))
+	for i, feedFollow := range feedFollows {
+		feedFollowModels[i] = databaseFeedFollowToFeedFollow(feedFollow)
+	}
+
+	respondWithJson(w, 200, feedFollowModels)
+}
