@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 	"log"
 	"net/http"
 	"database/sql"
@@ -41,6 +42,8 @@ func main() {
 	apiCfg := apiConfig{
 		DB: db.New(conn),
 	}
+
+	go startScraping(apiCfg.DB, 5, 1*time.Minute)
 
 	router := chi.NewRouter()
 

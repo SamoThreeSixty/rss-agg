@@ -11,7 +11,12 @@ SELECT * FROM feeds
 ORDER BY last_fetched_at ASC NULLS FIRST
 LIMIT 1;
 
--- name: UpdateFeedLastFetchedAt :exec
+-- name: GetNextFeedsToFetch :many
+SELECT * FROM feeds
+ORDER BY last_fetched_at ASC NULLS FIRST
+LIMIT $1;
+
+-- name: UpdateFeedLastFetchedAt :one
 UPDATE feeds
 SET last_fetched_at = NOW(), updated_at = NOW()
 WHERE id = $1
