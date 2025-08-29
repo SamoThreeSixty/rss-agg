@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"github.com/samothreesixty/rss-agg/internal/auth"
 	"github.com/samothreesixty/rss-agg/internal/db"
+	"github.com/samothreesixty/rss-agg/internal/handlers/utils"
 )
 
 type ApiConfig struct {
@@ -16,12 +17,12 @@ func (apiConfig *ApiConfig) MiddlewareAuth(next authedHandler) http.HandlerFunc 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey, err := auth.ExtractAPIKey(r.Header)	
 		if apiKey == "" {
-			respondWithError(w, 403, "Invalid API key")
+			utils.RespondWithError(w, 403, "Invalid API key")
 			return
 		}
 		user, err := apiConfig.DB.GetUserByAPIKey(r.Context(), apiKey)
 		if err != nil {
-			respondWithError(w, 403, "Invalid API key")
+			utils.RespondWithError(w, 403, "Invalid API key")
 			return
 		}
 		next(w, r, user)

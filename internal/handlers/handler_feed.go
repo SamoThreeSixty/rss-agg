@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samothreesixty/rss-agg/internal/db"
 	"github.com/samothreesixty/rss-agg/internal/models"
+	"github.com/samothreesixty/rss-agg/internal/handlers/utils"
 )
 
 func (apiConfig *ApiConfig) HandlerCreateFeed(w http.ResponseWriter, r *http.Request, user db.User) {
@@ -19,7 +20,7 @@ func (apiConfig *ApiConfig) HandlerCreateFeed(w http.ResponseWriter, r *http.Req
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request payload")
+		utils.RespondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
@@ -32,17 +33,17 @@ func (apiConfig *ApiConfig) HandlerCreateFeed(w http.ResponseWriter, r *http.Req
 		UserID:    user.ID,
 	})
 	if err != nil {
-		respondWithError(w, 500, "Cannot create feed")
+		utils.RespondWithError(w, 500, "Cannot create feed")
 		return
 	}
 
-	respondWithJson(w, 201, models.DatabaseFeedToFeed(feed))
+	utils.RespondWithJson(w, 201, models.DatabaseFeedToFeed(feed))
 }
 
 func (apiConfig *ApiConfig) HandlerGetFeeds(w http.ResponseWriter, r *http.Request) {
 	feeds, err := apiConfig.DB.GetFeeds(r.Context())
 	if err != nil {
-		respondWithError(w, 500, "Cannot get feeds")
+		utils.RespondWithError(w, 500, "Cannot get feeds")
 		return
 	}
 
@@ -51,5 +52,5 @@ func (apiConfig *ApiConfig) HandlerGetFeeds(w http.ResponseWriter, r *http.Reque
 		feedModels[i] = models.DatabaseFeedToFeed(feed)
 	}
 
-	respondWithJson(w, 200, feedModels)
+	utils.RespondWithJson(w, 200, feedModels)
 }

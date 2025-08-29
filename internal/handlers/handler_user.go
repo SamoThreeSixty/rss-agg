@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"encoding/json"
 	"time"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/samothreesixty/rss-agg/internal/db"
 	"github.com/samothreesixty/rss-agg/internal/models"
-	"fmt"
+	"github.com/samothreesixty/rss-agg/internal/handlers/utils"
 )
 
 func (apiConfig *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +19,7 @@ func (apiConfig *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Req
 	params := &parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request payload")
+		utils.RespondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
@@ -29,15 +30,15 @@ func (apiConfig *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Req
 		Name: params.Name,
 	})
 	if err != nil {
-		respondWithError(w, 500, "Cannot create user")
+		utils.RespondWithError(w, 500, "Cannot create user")
 		return
 	}
 
-	respondWithJson(w, 201, models.DatabaseUserToUser(user))
+	utils.RespondWithJson(w, 201, models.DatabaseUserToUser(user))
 }
 
 func (apiConfig *ApiConfig) HandlerGetUser(w http.ResponseWriter, r *http.Request, user db.User) {
-	respondWithJson(w, 200, models.DatabaseUserToUser(user))
+	utils.RespondWithJson(w, 200, models.DatabaseUserToUser(user))
 }
 
 func (apiConfig *ApiConfig) HandlerGetUserPosts(w http.ResponseWriter, r *http.Request, user db.User) {
@@ -46,9 +47,9 @@ func (apiConfig *ApiConfig) HandlerGetUserPosts(w http.ResponseWriter, r *http.R
 		10,
 	})
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't get posts: %w", err))
+		utils.RespondWithError(w, 400, fmt.Sprintf("Couldn't get posts: %w", err))
 		return
 	}
 
-	respondWithJson(w, 200, models.DatabasePostsToPosts(posts))
+	utils.RespondWithJson(w, 200, models.DatabasePostsToPosts(posts))
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samothreesixty/rss-agg/internal/db"
 	"github.com/samothreesixty/rss-agg/internal/models"
+	"github.com/samothreesixty/rss-agg/internal/handlers/utils"
 )
 
 func (apiConfig *ApiConfig) HandlerCreateFeedFollow(w http.ResponseWriter, r *http.Request, user db.User) {
@@ -20,7 +21,7 @@ func (apiConfig *ApiConfig) HandlerCreateFeedFollow(w http.ResponseWriter, r *ht
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request payload")
+		utils.RespondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
@@ -32,17 +33,17 @@ func (apiConfig *ApiConfig) HandlerCreateFeedFollow(w http.ResponseWriter, r *ht
 		FeedID:    params.FeedID,
 	})
 	if err != nil {
-		respondWithError(w, 500, "Cannot create feed")
+		utils.RespondWithError(w, 500, "Cannot create feed")
 		return
 	}
 
-	respondWithJson(w, 201, models.DatabaseFeedFollowToFeedFollow(feedFollow))
+	utils.RespondWithJson(w, 201, models.DatabaseFeedFollowToFeedFollow(feedFollow))
 }
 
 func (apiConfig *ApiConfig) HandlerGetFeedFollowsByUser(w http.ResponseWriter, r *http.Request, user db.User) {
 	feedFollows, err := apiConfig.DB.GetFeedFollowsByUserID(r.Context(), user.ID)
 	if err != nil {
-		respondWithError(w, 500, "Cannot get feed follows")
+		utils.RespondWithError(w, 500, "Cannot get feed follows")
 		return
 	}
 
@@ -51,14 +52,14 @@ func (apiConfig *ApiConfig) HandlerGetFeedFollowsByUser(w http.ResponseWriter, r
 		feedFollowModels[i] = models.DatabaseFeedFollowToFeedFollow(feedFollow)
 	}
 
-	respondWithJson(w, 200, feedFollowModels)
+	utils.RespondWithJson(w, 200, feedFollowModels)
 }
 
 func (apiConfig *ApiConfig) HandlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user db.User) {
 	feedFollowIDStr := chi.URLParam(r, "feedFollowId")
 	feedFollowID, err := uuid.Parse(feedFollowIDStr)
 	if err != nil {
-		respondWithError(w, 400, "Invalid feed follow ID")
+		utils.RespondWithError(w, 400, "Invalid feed follow ID")
 		return
 	}
 
@@ -67,15 +68,15 @@ func (apiConfig *ApiConfig) HandlerDeleteFeedFollow(w http.ResponseWriter, r *ht
 		UserID: user.ID,
 	})
 	if err == sql.ErrNoRows {
-		respondWithError(w, 404, "Feed follow not found")
+		utils.RespondWithError(w, 404, "Feed follow not found")
 		return
 	}
 	if err != nil {
-		respondWithError(w, 500, "Cannot delete feed follow")
+		utils.RespondWithError(w, 500, "Cannot delete feed follow")
 		return
 	}
 
-	respondWithJson(w, 200, map[string]string{
+	utils.RespondWithJson(w, 200, map[string]string{
 		"result": "success",
 		"id":    deletedID.String(),
 	})
