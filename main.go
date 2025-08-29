@@ -8,15 +8,15 @@ import (
 	"net/http"
 	"database/sql"
 	_"github.com/lib/pq"
+
 	"github.com/samothreesixty/rss-agg/internal/db"
+	"github.com/samothreesixty/rss-agg/internal/handlers"
+	"github.com/samothreesixty/rss-agg/internal/scraper"
+
 	"github.com/joho/godotenv"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/chi"
 )
-
-type apiConfig struct {
-	DB *db.Queries
-}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -39,11 +39,11 @@ func main() {
 		log.Fatal("Cannot connect to db:", err)
 	}
 
-	apiCfg := apiConfig{
+	apiCfg := handlers.ApiConfig{
 		DB: db.New(conn),
 	}
 
-	go startScraping(&apiCfg, 5, 1*time.Minute)
+	go scraper.StartScraping(&apiCfg, 5, 1*time.Minute)
 
 	router := chi.NewRouter()
 
@@ -58,17 +58,17 @@ func main() {
 
 	v1Router := chi.NewRouter()
 
-	v1Router.Get("/ready", handlerReadiness)
-	v1Router.Post("/ready2", handlerReadiness)
-	v1Router.Get("/error", handleError)
-	v1Router.Post("/users", apiCfg.handlerCreateUser)
-	v1Router.Get("/user", apiCfg.middlewareAuth(apiCfg.handlerGetUser))
-	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
-	v1Router.Get("/feeds", apiCfg.handlerGetFeeds)
-	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
-	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollowsByUser))
-	v1Router.Delete("/feed_follows/{feedFollowId}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
-	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerGetUserPosts))
+	v1Router.Get("/ready", apiCfg.HandlerReadiness)
+	v1Router.Post("/ready2", apiCfg.HandlerReadiness)
+	v1Router.Get("/error", apiCfg.HandleError)
+	v1Router.Post("/users", apiCfg.HandlerCreateUser)
+	v1Router.Get("/user", apiCfg.MiddlewareAuth(apiCfg.HandlerGetUser))
+	v1Router.Post("/feeds", apiCfg.MiddlewareAuth(apiCfg.HandlerCreateFeed))
+	v1Router.Get("/feeds", apiCfg.HandlerGetFeeds)
+	v1Router.Post("/feed_follows", apiCfg.MiddlewareAuth(apiCfg.HandlerCreateFeedFollow))
+	v1Router.Get("/feed_follows", apiCfg.MiddlewareAuth(apiCfg.HandlerGetFeedFollowsByUser))
+	v1Router.Delete("/feed_follows/{feedFollowId}", apiCfg.MiddlewareAuth(apiCfg.HandlerDeleteFeedFollow))
+	v1Router.Get("/posts", apiCfg.MiddlewareAuth(apiCfg.HandlerGetUserPosts))
 
 	router.Mount("/v1", v1Router)
 
