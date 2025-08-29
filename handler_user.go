@@ -6,6 +6,7 @@ import (
 	"time"
 	"github.com/google/uuid"
 	"github.com/samothreesixty/rss-agg/internal/db"
+	"fmt"
 )
 
 func (apiConfig *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -36,4 +37,17 @@ func (apiConfig *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Req
 
 func (apiConfig *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user db.User) {
 	respondWithJson(w, 200, databaseUserToUser(user))
+}
+
+func (apiConfig *apiConfig) handlerGetUserPosts(w http.ResponseWriter, r *http.Request, user db.User) {
+	posts, err := apiConfig.DB.GetPostsForUser(r.Context(), db.GetPostsForUserParams{
+		user.ID,
+		10,
+	})
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get posts: %w", err))
+		return
+	}
+
+	respondWithJson(w, 200, databasePostsToPosts(posts))
 }
